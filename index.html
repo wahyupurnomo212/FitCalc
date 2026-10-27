@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitCalc Pro - Kalkulator Kebugaran Tubuh Modern</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Print-only Header -->
+    <div id="print-header" class="p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Laporan Penilaian Kebugaran Tubuh - FitCalc Pro</h1>
+                <p class="text-sm text-slate-500">Hasil Analisis Ilmiah BMI, Kalori TDEE, Komposisi Tubuh, dan Hidrasi</p>
+            </div>
+            <div class="text-right text-xs text-slate-500">
+                <p id="print-date">Dicetak pada: <script>document.write(new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}))</script></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-heart-pulse text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+                        FitCalc Pro
+                    </h1>
+                    <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 -mt-1 hidden sm:block">
+                        Kalkulator Kebugaran Tubuh & Nutrisi Sains
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="fill-sample-btn" type="button" title="Isi contoh data cepat" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-900 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition">
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
+                    <span>Isi Contoh</span>
+                </button>
+
+                <button id="print-report-btn" type="button" title="Cetak atau Unduh Laporan PDF" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Cetak PDF</span>
+                </button>
+
+                <!-- Dark / Light Mode Toggle -->
+                <button id="theme-toggle-btn" type="button" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition" aria-label="Toggle Theme">
+                    <i id="theme-icon" class="fa-solid fa-moon text-indigo-600"></i>
+                    <span id="theme-text" class="hidden sm:inline">Mode Gelap</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Bar Navigation (Scrollable horizontally on mobile) -->
+        <div class="border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 overflow-x-auto no-scrollbar">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 py-1.5">
+                <button class="tab-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-all-in-one">
+                    <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
+                    <span>Penilaian Lengkap</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-bmi">
+                    <i class="fa-solid fa-weight-scale text-indigo-500"></i>
+                    <span>BMI & Berat Ideal</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-calorie">
+                    <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
+                    <span>Kalori & TDEE</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-bodyfat">
+                    <i class="fa-solid fa-ruler-combined text-emerald-500"></i>
+                    <span>Lemak Tubuh</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-hydration">
+                    <i class="fa-solid fa-droplet text-cyan-500"></i>
+                    <span>Kebutuhan Air</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-heart-rate">
+                    <i class="fa-solid fa-heart text-rose-500"></i>
+                    <span>Denyut Jantung</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-onerm">
+                    <i class="fa-solid fa-dumbbell text-purple-500"></i>
+                    <span>Kekuatan 1RM</span>
+                </button>
+                <button class="tab-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0" data-tab="tab-history">
+                    <i class="fa-solid fa-chart-line text-blue-500"></i>
+                    <span>Riwayat & Tren</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- ======================================================== -->
+        <!-- TAB 1: ALL-IN-ONE FITNESS ASSESSMENT (DASHBOARD LENGKAP) -->
+        <!-- ======================================================== -->
+        <section id="tab-all-in-one" class="tab-content-panel space-y-8">
+            <!-- Header Intro Banner -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 sm:p-8 shadow-lg">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 mb-3">
+                        <i class="fa-solid fa-shield-heart"></i> Analisis Komprehensif
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                        Evaluasi Kebugaran Tubuh Terpadu
+                    </h2>
+                    <p class="text-indigo-100/90 text-sm sm:text-base leading-relaxed">
+                        Masukkan data fisik Anda untuk mendapatkan analisis instan: Skor Kebugaran, Indeks BMI, Pembakaran Kalori Harian (TDEE), Target Makronutrisi, Estimasi Lemak Tubuh, dan Zona Kardio.
+                    </p>
+                </div>
+                <!-- Decorative background elements -->
+                <div class="absolute -right-8 -bottom-10 opacity-15 text-white pointer-events-none">
+                    <i class="fa-solid fa-person-running text-[200px]"></i>
+                </div>
+            </div>
+
+            <!-- Two Column Layout: Form & Results -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- LEFT COLUMN: Profile Input Form (5 Cols) -->
+                <div class="lg:col-span-5 glass-panel rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-5">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-600 dark:text-indigo-400"></i>
+                            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100">Profil & Ukuran Fisik</h3>
+                        </div>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">*Wajib diisi</span>
+                    </div>
+
+                    <form id="all-in-one-form" class="space-y-4">
+                        <!-- Nama Pengguna -->
+                        <div>
+                            <label for="aio-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Nama Lengkap / Panggilan
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-regular fa-user text-sm"></i>
+                                </span>
+                                <input type="text" id="aio-name" value="Wahyu" required
+                                    class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                            </div>
+                        </div>
+
+                        <!-- Jenis Kelamin -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                Jenis Kelamin
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="aio-gender" value="male" checked class="peer sr-only">
+                                    <div class="p-2.5 rounded-xl border text-center text-xs font-semibold flex items-center justify-center gap-2 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                        <i class="fa-solid fa-mars text-blue-500"></i> Laki-laki
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="aio-gender" value="female" class="peer sr-only">
+                                    <div class="p-2.5 rounded-xl border text-center text-xs font-semibold flex items-center justify-center gap-2 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                        <i class="fa-solid fa-venus text-pink-500"></i> Perempuan
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Usia, Tinggi & Berat -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label for="aio-age" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Usia (thn)
+                                </label>
+                                <input type="number" id="aio-age" min="10" max="100" value="26" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            </div>
+                            <div>
+                                <label for="aio-height" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Tinggi (cm)
+                                </label>
+                                <input type="number" id="aio-height" min="100" max="250" value="172" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            </div>
+                            <div>
+                                <label for="aio-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Berat (kg)
+                                </label>
+                                <input type="number" step="0.1" id="aio-weight" min="30" max="300" value="68" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            </div>
+                        </div>
+
+                        <!-- Ukuran Lingkar Tubuh (Untuk Rumus US Navy Body Fat) -->
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <span class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+                                Lingkar Tubuh (Estimasi Lemak US Navy)
+                            </span>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="aio-waist" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Pinggang (cm)
+                                    </label>
+                                    <input type="number" step="0.5" id="aio-waist" min="40" max="180" value="82"
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                        placeholder="Setinggi pusar">
+                                </div>
+                                <div>
+                                    <label for="aio-neck" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Leher (cm)
+                                    </label>
+                                    <input type="number" step="0.5" id="aio-neck" min="20" max="70" value="38"
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                        placeholder="Bawah jakun">
+                                </div>
+                            </div>
+
+                            <!-- Hip container (Hanya relevan/muncul untuk perempuan) -->
+                            <div id="aio-hip-container" class="mt-2.5 hidden">
+                                <label for="aio-hip" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Pinggul (cm) <span class="text-pink-500 font-normal">*Khusus wanita</span>
+                                </label>
+                                <input type="number" step="0.5" id="aio-hip" min="50" max="180" value="95"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                    placeholder="Bagian terlebar pinggul">
+                            </div>
+                        </div>
+
+                        <!-- Tingkat Aktivitas Harian (TDEE Factor) -->
+                        <div>
+                            <label for="aio-activity" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Tingkat Aktivitas Fisik
+                            </label>
+                            <select id="aio-activity"
+                                class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                                <option value="1.2">Sedentary (Sangat jarang olahraga / kerja meja)</option>
+                                <option value="1.375">Ringan (Olahraga ringan 1 - 3 hari/minggu)</option>
+                                <option value="1.55" selected>Sedang (Olahraga aktif 3 - 5 hari/minggu)</option>
+                                <option value="1.725">Sangat Aktif (Latihan intensif 6 - 7 hari/minggu)</option>
+                                <option value="1.9">Ekstra Aktif (Atlet / Pekerjaan fisik sangat berat)</option>
+                            </select>
+                        </div>
+
+                        <!-- Target / Sasaran Kebugaran -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="aio-goal" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Target Sasaran
+                                </label>
+                                <select id="aio-goal"
+                                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                                    <option value="maintain">Pertahankan Berat</option>
+                                    <option value="cut_mild" selected>Turunkan Berat (Ringan -300 kcal)</option>
+                                    <option value="cut_opt">Turunkan Lemak Optimal (-20%)</option>
+                                    <option value="cut_aggressive">Defisit Agresif (-25%)</option>
+                                    <option value="bulk_lean">Lean Bulk (+300 kcal)</option>
+                                    <option value="bulk_fast">Bulking Cepat (+15%)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="aio-diet" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Pola Nutrisi (Makro)
+                                </label>
+                                <select id="aio-diet"
+                                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                                    <option value="balanced">Seimbang (50K : 25P : 25L)</option>
+                                    <option value="high_protein" selected>Tinggi Protein (35K : 40P : 25L)</option>
+                                    <option value="low_carb">Rendah Karbo (20K : 40P : 40L)</option>
+                                    <option value="keto">Ketogenik (5K : 25P : 70L)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Submit -->
+                        <div class="pt-3">
+                            <button type="submit"
+                                class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white font-bold text-sm shadow-md shadow-indigo-600/30 active:scale-[0.99] transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-calculator"></i>
+                                <span>Hitung Kebugaran Tubuh</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT COLUMN: Dashboard Hasil Evaluasi (7 Cols) -->
+                <div id="results-section" class="lg:col-span-7 space-y-6">
+
+                    <!-- Score & Quick Overview Card -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm border-l-4 border-l-indigo-600">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Ringkasan Profil Kebugaran
+                                </span>
+                                <h3 class="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">
+                                    Halo, <span id="summary-user-name">Pengguna</span>!
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Berikut ini hasil analisa metrik kesehatan Anda berdasarkan formula kedokteran olahraga & nutrisi.
+                                </p>
+                            </div>
+
+                            <!-- Fitness Health Score Badge -->
+                            <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shrink-0">
+                                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-400 flex flex-col items-center justify-center text-white shadow-md pulse-score">
+                                    <span id="summary-score-value" class="text-xl font-black leading-none">88</span>
+                                    <span class="text-[9px] font-medium opacity-90">SKOR</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Indeks Bugar</span>
+                                    <span id="summary-score-rating" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-white">
+                                        Sangat Prima
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Toolbar (Simpan Riwayat & Cetak) -->
+                        <div class="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+                            <button id="save-history-btn" type="button"
+                                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 transition">
+                                <i class="fa-regular fa-bookmark text-indigo-500"></i>
+                                <span>Simpan ke Riwayat</span>
+                            </button>
+                            <span class="text-[11px] text-slate-400">
+                                <i class="fa-regular fa-clock mr-1"></i> Diperbarui Real-time
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Grid Metrik Utama: BMI & Kalori TDEE -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        
+                        <!-- 1. KARTU BMI & BERAT IDEAL -->
+                        <div class="glass-panel rounded-2xl p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-weight-scale"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Indeks Massa Tubuh (BMI)</h4>
+                                        <span class="text-[10px] text-slate-500">Standar Asia-Pasifik (Kemenkes)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-baseline gap-3">
+                                <span id="res-bmi-value" class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">22.8</span>
+                                <span id="res-bmi-category" class="px-2.5 py-1 rounded-md text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    Normal / Ideal
+                                </span>
+                            </div>
+
+                            <!-- BMI Gauge Visual Bar -->
+                            <div class="space-y-1.5">
+                                <div class="relative h-2.5 w-full rounded-full bg-gradient-to-r from-blue-400 via-emerald-400 via-amber-400 via-orange-400 to-rose-500 overflow-hidden shadow-inner">
+                                </div>
+                                <div class="relative w-full h-3">
+                                    <div id="bmi-needle" class="absolute -top-1 w-2.5 h-2.5 bg-slate-900 dark:bg-white rounded-full border border-white dark:border-slate-900 shadow transform -translate-x-1/2" style="left: 45%;"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+                                    <span>Kurus (&lt;18.5)</span>
+                                    <span>Normal (18.5-22.9)</span>
+                                    <span>Overweight (23-24.9)</span>
+                                    <span>Obesitas (&ge;25)</span>
+                                </div>
+                            </div>
+
+                            <p id="res-bmi-advice" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80">
+                                Berat badan Anda berada di rentang ideal. Pertahankan pola makan seimbang dan aktivitas fisik teratur.
+                            </p>
+
+                            <!-- Berat Badan Ideal Range -->
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Rentang Ideal Sehat</span>
+                                    <span id="res-ideal-weight-range" class="font-bold text-slate-800 dark:text-slate-200">54.7 - 67.7 kg</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Berat Ideal (Broca)</span>
+                                    <span id="res-ideal-broca" class="font-bold text-indigo-600 dark:text-indigo-400">64.8 kg</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. KARTU BMR, TDEE & TARGET KALORI -->
+                        <div class="glass-panel rounded-2xl p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-fire-flame-curved"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Kebutuhan Kalori</h4>
+                                        <span class="text-[10px] text-slate-500">Mifflin-St Jeor Formula</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Target Harian Sesuai Sasaran</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="res-target-calories" class="text-3xl font-black text-indigo-600 dark:text-indigo-400">2,150 kkal</span>
+                                    <span class="text-xs text-slate-500 font-medium">/ hari</span>
+                                </div>
+                                <p id="res-target-calories-note" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Defisit kalori 300 kkal di bawah TDEE harian.
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">BMR (Metabolisme Diam)</span>
+                                    <span id="res-bmr-value" class="font-bold text-slate-800 dark:text-slate-200">1,620 kkal</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">TDEE (Bakar Total)</span>
+                                    <span id="res-tdee-value" class="font-bold text-slate-800 dark:text-slate-200">2,450 kkal</span>
+                                </div>
+                            </div>
+
+                            <!-- Target Gram Makronutrisi -->
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
+                                    <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 block">Karbo</span>
+                                    <span id="res-carb-grams" class="text-sm font-extrabold text-blue-800 dark:text-blue-200">188 g</span>
+                                </div>
+                                <div class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900">
+                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">Protein</span>
+                                    <span id="res-protein-grams" class="text-sm font-extrabold text-emerald-800 dark:text-emerald-200">215 g</span>
+                                </div>
+                                <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900">
+                                    <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 block">Lemak</span>
+                                    <span id="res-fat-grams" class="text-sm font-extrabold text-amber-800 dark:text-amber-200">60 g</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Macro Chart & Body Composition Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                        
+                        <!-- Donut Chart Makro (5 Cols) -->
+                        <div class="md:col-span-5 glass-panel rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-indigo-500"></i>
+                                    <span>Distribusi Makronutrisi</span>
+                                </h4>
+                                <p class="text-[11px] text-slate-500">Rasio Karbohidrat, Protein, & Lemak</p>
+                            </div>
+                            <div class="relative h-44 my-2">
+                                <canvas id="aio-macro-chart"></canvas>
+                            </div>
+                            <span class="text-[10px] text-center text-slate-400 block">
+                                Sesuaikan jenis pola makan pada formulir kiri
+                            </span>
+                        </div>
+
+                        <!-- Lemak Tubuh, Komposisi, & Hidrasi (7 Cols) -->
+                        <div class="md:col-span-7 space-y-4">
+                            <!-- Card Lemak Tubuh (US Navy) -->
+                            <div id="res-bodyfat-card" class="glass-panel rounded-2xl p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
+                                            <i class="fa-solid fa-ruler-combined"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Estimasi Lemak Tubuh (% Body Fat)</h4>
+                                            <span class="text-[10px] text-slate-500">Metode U.S. Navy & Kategori ACE</span>
+                                        </div>
+                                    </div>
+                                    <span id="res-bodyfat-cat" class="px-2.5 py-0.5 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                        Bugar (Fitness)
+                                    </span>
+                                </div>
+
+                                <div class="flex items-baseline gap-2">
+                                    <span id="res-bodyfat-value" class="text-3xl font-black text-slate-900 dark:text-white">16.8%</span>
+                                    <span class="text-xs text-slate-500">dari berat total</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+                                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800">
+                                        <span class="text-slate-400 block text-[10px]">Massa Lemak (Fat Mass)</span>
+                                        <span id="res-fat-mass" class="font-bold text-slate-800 dark:text-slate-200">11.4 kg</span>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800">
+                                        <span class="text-slate-400 block text-[10px]">Massa Bebas Lemak (Lean)</span>
+                                        <span id="res-lean-mass" class="font-bold text-indigo-600 dark:text-indigo-400">56.6 kg</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Kebutuhan Hidrasi & Detak Jantung Ringkas -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <i class="fa-solid fa-droplet text-cyan-500"></i>
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-200">Kebutuhan Air</span>
+                                    </div>
+                                    <div class="text-xl font-extrabold text-cyan-600 dark:text-cyan-400" id="res-water-liters">
+                                        2.8 Liter
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400" id="res-water-glasses">
+                                        ~11 Gelas / hari
+                                    </span>
+                                </div>
+
+                                <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <i class="fa-solid fa-heart-pulse text-rose-500"></i>
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-200">Bakar Lemak (Z2)</span>
+                                    </div>
+                                    <div class="text-xl font-extrabold text-rose-600 dark:text-rose-400" id="res-fatburn-hr">
+                                        116 - 135 BPM
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                                        Max HR: <span id="res-max-hr">194 BPM</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Heart Rate Zones Chart Full Width -->
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-chart-simple text-rose-500"></i>
+                                <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                    Zona Detak Jantung Latihan (Cardio Training Zones)
+                                </h4>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Formula Karvonen</span>
+                        </div>
+                        <div class="relative h-44">
+                            <canvas id="aio-heartrate-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Personalized Recommendations Section -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                            <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                Saran & Rencana Tindakan Berdasarkan Analisis Tubuh Anda
+                            </h4>
+                        </div>
+                        <div id="res-recommendations-list" class="space-y-3">
+                            <!-- Injected dynamically via app.js -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 2: BMI & BERAT BADAN IDEAL (STANDALONE TOOL)         -->
+        <!-- ======================================================== -->
+        <section id="tab-bmi" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kalkulator BMI & Berat Badan Ideal</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Ketahui apakah berat badan Anda ideal sesuai standar Kemenkes RI / Asia-Pasifik dan bandingkan dengan berbagai formula ilmiah terkemuka (Broca, Devine, Robinson).
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Form Input BMI -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                        <form id="bmi-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="ind-bmi-gender" value="male" checked class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-mars text-blue-500 mr-1"></i> Laki-laki
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="ind-bmi-gender" value="female" class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-venus text-pink-500 mr-1"></i> Perempuan
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="ind-bmi-height" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggi Badan (cm)</label>
+                                <input type="number" id="ind-bmi-height" value="170" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label for="ind-bmi-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Badan (kg)</label>
+                                <input type="number" step="0.1" id="ind-bmi-weight" value="65" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+
+                            <button type="submit"
+                                class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition">
+                                Hitung BMI & Berat Ideal
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hasil BMI Standalone -->
+                    <div id="ind-bmi-result-box" class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Indeks Massa Tubuh Anda</span>
+                            <div class="flex items-baseline gap-3 mt-1">
+                                <span id="ind-bmi-num" class="text-4xl font-black text-indigo-600 dark:text-indigo-400">22.5</span>
+                                <span id="ind-bmi-badge" class="px-3 py-1 rounded-full text-xs font-bold text-emerald-600 bg-emerald-50">Normal</span>
+                            </div>
+                            <p id="ind-bmi-advice" class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                Berat badan Anda ideal dan proporsional.
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Perbandingan Formula Berat Ideal:
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">Rentang Sehat (Asia-Pasifik)</span>
+                                    <span id="ind-ideal-range" class="font-bold text-slate-800 dark:text-slate-200">53.5 - 66.2 kg</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">Formula Broca (Kemenkes)</span>
+                                    <span id="ind-ideal-broca" class="font-bold text-indigo-600 dark:text-indigo-400">63.0 kg</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">Formula Devine (1974)</span>
+                                    <span id="ind-ideal-devine" class="font-bold text-slate-800 dark:text-slate-200">66.0 kg</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">Formula Robinson (1983)</span>
+                                    <span id="ind-ideal-robinson" class="font-bold text-slate-800 dark:text-slate-200">65.2 kg</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Box Klasifikasi BMI Kemenkes -->
+                <div class="glass-panel rounded-2xl p-6 shadow-sm overflow-x-auto">
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-indigo-500"></i>
+                        <span>Tabel Klasifikasi BMI Asia-Pasifik (Kemenkes RI)</span>
+                    </h3>
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                            <tr>
+                                <th class="py-2 px-3">Kategori</th>
+                                <th class="py-2 px-3">Rentang Nilai BMI</th>
+                                <th class="py-2 px-3">Tingkat Risiko Penyakit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr>
+                                <td class="py-2.5 px-3 font-semibold text-blue-600 dark:text-blue-400">Kekurangan Berat Berat</td>
+                                <td class="py-2.5 px-3">&lt; 17.0</td>
+                                <td class="py-2.5 px-3 text-slate-500">Risiko masalah gizi & anemia</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 px-3 font-semibold text-cyan-600 dark:text-cyan-400">Kekurangan Berat Ringan</td>
+                                <td class="py-2.5 px-3">17.0 - 18.4</td>
+                                <td class="py-2.5 px-3 text-slate-500">Daya tahan tubuh rendah</td>
+                            </tr>
+                            <tr class="bg-emerald-50/50 dark:bg-emerald-950/20">
+                                <td class="py-2.5 px-3 font-bold text-emerald-600 dark:text-emerald-400">Normal / Ideal</td>
+                                <td class="py-2.5 px-3 font-bold text-emerald-600 dark:text-emerald-400">18.5 - 22.9</td>
+                                <td class="py-2.5 px-3 text-emerald-700 dark:text-emerald-300">Rendah / Paling Sehat</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 px-3 font-semibold text-amber-600 dark:text-amber-400">Kelebihan Berat (Overweight)</td>
+                                <td class="py-2.5 px-3">23.0 - 24.9</td>
+                                <td class="py-2.5 px-3 text-slate-500">Meningkat</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 px-3 font-semibold text-orange-600 dark:text-orange-400">Obesitas Tingkat 1</td>
+                                <td class="py-2.5 px-3">25.0 - 29.9</td>
+                                <td class="py-2.5 px-3 text-slate-500">Moderat (hipertensi, kolesterol)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 px-3 font-semibold text-rose-600 dark:text-rose-400">Obesitas Tingkat 2</td>
+                                <td class="py-2.5 px-3">&ge; 30.0</td>
+                                <td class="py-2.5 px-3 text-slate-500">Sangat Tinggi (diabetes, kardiovaskular)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 3: BMR, TDEE & KALORI / MACRO PLANNER                -->
+        <!-- ======================================================== -->
+        <section id="tab-calorie" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kalkulator BMR, TDEE & Makronutrisi</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Hitung kebutuhan energi harian tubuh dan rencana gram protein, karbohidrat, serta lemak sehat untuk diet Anda.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Form Kalori -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                        <form id="calorie-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="ind-cal-gender" value="male" checked class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-mars text-blue-500 mr-1"></i> Laki-laki
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="ind-cal-gender" value="female" class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-venus text-pink-500 mr-1"></i> Perempuan
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label for="ind-cal-age" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia (thn)</label>
+                                    <input type="number" id="ind-cal-age" value="26" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="ind-cal-height" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggi (cm)</label>
+                                    <input type="number" id="ind-cal-height" value="172" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="ind-cal-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat (kg)</label>
+                                    <input type="number" step="0.1" id="ind-cal-weight" value="68" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="ind-cal-activity" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Aktivitas Fisik</label>
+                                <select id="ind-cal-activity" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="1.2">Sedentary (Kerja meja, jarang olahraga)</option>
+                                    <option value="1.375">Olahraga Ringan (1-3 hari/minggu)</option>
+                                    <option value="1.55" selected>Olahraga Sedang (3-5 hari/minggu)</option>
+                                    <option value="1.725">Olahraga Berat (6-7 hari/minggu)</option>
+                                    <option value="1.9">Atlet / Pekerjaan Sangat Berat</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="ind-cal-goal" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Target</label>
+                                    <select id="ind-cal-goal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                        <option value="maintain">Pertahankan</option>
+                                        <option value="cut_mild">Cut Ringan (-300 kcal)</option>
+                                        <option value="cut_opt" selected>Cut Optimal (-20%)</option>
+                                        <option value="bulk_lean">Lean Bulk (+300 kcal)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="ind-cal-diet" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pola Makro</label>
+                                    <select id="ind-cal-diet" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                        <option value="balanced">Seimbang</option>
+                                        <option value="high_protein" selected>Tinggi Protein</option>
+                                        <option value="low_carb">Rendah Karbo</option>
+                                        <option value="keto">Keto</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow-md transition">
+                                Hitung Kalori & Makro
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hasil Kalori Standalone -->
+                    <div id="ind-cal-result-box" class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Target Kalori Harian Anda</span>
+                            <div class="text-3xl font-black text-orange-600 dark:text-orange-400" id="ind-cal-target">
+                                1,960 kkal/hari
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">BMR (Kalori Diam)</span>
+                                <span id="ind-cal-bmr" class="font-bold text-slate-800 dark:text-slate-200">1,620 kkal</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">TDEE (Bakar Total)</span>
+                                <span id="ind-cal-tdee" class="font-bold text-slate-800 dark:text-slate-200">2,510 kkal</span>
+                            </div>
+                        </div>
+
+                        <!-- Macro Details -->
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400 block">Kebutuhan Gram Harian:</span>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex justify-between p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 font-semibold">
+                                    <span>Karbohidrat</span>
+                                    <span id="ind-cal-carb">172g (688 kkal)</span>
+                                </div>
+                                <div class="flex justify-between p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold">
+                                    <span>Protein</span>
+                                    <span id="ind-cal-protein">196g (784 kkal)</span>
+                                </div>
+                                <div class="flex justify-between p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-semibold">
+                                    <span>Lemak Sehat</span>
+                                    <span id="ind-cal-fat">54g (486 kkal)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative h-40">
+                            <canvas id="ind-cal-macro-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 4: PERSENTASE LEMAK TUBUH (US NAVY METHOD)          -->
+        <!-- ======================================================== -->
+        <section id="tab-bodyfat" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kalkulator Lemak Tubuh (U.S. Navy)</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Metode ilmiah Angkatan Laut Amerika Serikat yang paling akurat untuk mengukur komposisi persentase lemak tubuh tanpa alat scan mahal.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Form Lemak Tubuh -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                        <form id="bodyfat-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="bf-gender" value="male" checked class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-mars text-blue-500 mr-1"></i> Laki-laki
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="bf-gender" value="female" class="peer sr-only">
+                                        <div class="p-2.5 rounded-xl border text-center text-xs font-semibold peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 dark:peer-checked:bg-indigo-950/60 dark:peer-checked:border-indigo-500 dark:peer-checked:text-indigo-300 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 transition">
+                                            <i class="fa-solid fa-venus text-pink-500 mr-1"></i> Perempuan
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="bf-height" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tinggi (cm)</label>
+                                    <input type="number" id="bf-height" value="172" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="bf-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat (kg)</label>
+                                    <input type="number" step="0.1" id="bf-weight" value="68" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="bf-neck" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lingkar Leher (cm)</label>
+                                    <input type="number" step="0.5" id="bf-neck" value="38" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="bf-waist" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lingkar Pinggang (cm)</label>
+                                    <input type="number" step="0.5" id="bf-waist" value="82" required
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="bf-hip-container" class="hidden">
+                                <label for="bf-hip" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lingkar Pinggul (cm) *Wanita</label>
+                                <input type="number" step="0.5" id="bf-hip" value="95"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition">
+                                Hitung Persentase Lemak
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hasil Lemak Tubuh Standalone -->
+                    <div id="bf-result-box" class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Persentase Lemak Tubuh</span>
+                            <div class="flex items-baseline gap-3 mt-1">
+                                <span id="bf-result-percent" class="text-4xl font-black text-emerald-600 dark:text-emerald-400">16.8%</span>
+                                <span id="bf-result-category" class="px-3 py-1 rounded-full text-xs font-bold text-emerald-600 bg-emerald-50">Bugar (Fitness)</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">Massa Lemak (Fat Mass)</span>
+                                <span id="bf-fatmass" class="font-bold text-slate-800 dark:text-slate-200 text-sm">11.4 kg</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">Massa Otot & Bebas Lemak</span>
+                                <span id="bf-leanmass" class="font-bold text-indigo-600 dark:text-indigo-400 text-sm">56.6 kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Panduan Mengukur -->
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5">
+                            <p class="font-bold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-tape mr-1 text-indigo-500"></i> Cara Mengukur yang Benar:</p>
+                            <p>• <b>Pinggang</b>: Ukur horizontal tepat di atas pusar saat rileks (jangan tahan napas).</p>
+                            <p>• <b>Leher</b>: Ukur di bagian tersempit leher tepat di bawah jakun.</p>
+                            <p>• <b>Pinggul (Wanita)</b>: Ukur di bagian pinggul & bokong yang paling lebar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 5: KEBUTUHAN HIDRASI & LOG MINUM AIR                -->
+        <!-- ======================================================== -->
+        <section id="tab-hydration" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kebutuhan Hidrasi & Tracker Air Harian</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Cegah dehidrasi dan tingkatkan laju metabolisme. Hitung target air minum harian Anda dan catat setiap gelas yang Anda minum hari ini.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Form Hidrasi -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                        <form id="hydro-form" class="space-y-4">
+                            <div>
+                                <label for="hydro-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Berat Badan Anda (kg)</label>
+                                <input type="number" step="0.1" id="hydro-weight" value="68" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label for="hydro-exercise" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Rata-rata Durasi Olahraga Harian (menit)</label>
+                                <input type="number" id="hydro-exercise" value="45" min="0" max="300"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500 outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-md transition">
+                                Hitung Target Air Minum
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hasil Hidrasi Standalone -->
+                    <div id="hydro-result-box" class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Target Cairan Harian</span>
+                            <div class="flex items-baseline gap-3 mt-1">
+                                <span id="hydro-res-liters" class="text-4xl font-black text-cyan-600 dark:text-cyan-400">2.9 L</span>
+                                <span id="hydro-res-glasses" class="text-sm font-bold text-slate-500">~12 Gelas (@250ml)</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">Kebutuhan Pokok Metabolisme</span>
+                                <span id="hydro-res-base" class="font-bold text-slate-800 dark:text-slate-200">2,380 ml</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block text-[10px]">Tambahan karena Olahraga</span>
+                                <span id="hydro-res-exercise" class="font-bold text-cyan-600 dark:text-cyan-400">+525 ml</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Water Tracker (Gelas Air Minum) -->
+                <div class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <i class="fa-solid fa-glass-water text-cyan-500"></i>
+                                <span>Pencatat Gelas Air Minum Hari Ini</span>
+                            </h3>
+                            <p id="water-logged-text" class="text-xs text-slate-500 mt-0.5">
+                                Klik pada gelas untuk mencatat air yang telah diminum
+                            </p>
+                        </div>
+                        <button id="reset-water-btn" type="button" class="text-xs text-slate-400 hover:text-rose-500 transition">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Hari Ini
+                        </button>
+                    </div>
+
+                    <!-- Interactive Glasses Grid -->
+                    <div id="water-glasses-interactive" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                        <!-- Injected dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 6: TARGET DENYUT JANTUNG & ZONA KARDIO (HEART RATE) -->
+        <!-- ======================================================== -->
+        <section id="tab-heart-rate" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Target Denyut Jantung & 5 Zona Latihan</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Optimalkan sesi lari, sepeda, atau HIIT Anda dengan berlatih di detak jantung yang tepat (Formula Karvonen & Cadangan Jantung).
+                    </p>
+                </div>
+
+                <!-- Input Form -->
+                <div class="glass-panel rounded-2xl p-6 shadow-sm max-w-md mx-auto">
+                    <form id="heartrate-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="hr-age" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Usia Anda (tahun)</label>
+                                <input type="number" id="hr-age" value="26" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 outline-none">
+                            </div>
+                            <div>
+                                <label for="hr-resting" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Detak Jantung Istirahat (BPM)</label>
+                                <input type="number" id="hr-resting" value="68" placeholder="Opsional (60-80)"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 outline-none">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition">
+                            Hitung Zona Latihan
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Hasil Zona Detak Jantung -->
+                <div id="hr-result-box" class="space-y-6">
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Denyut Jantung Maksimal (Max HR)</span>
+                            <span id="hr-max-display" class="text-3xl font-black text-rose-600 dark:text-rose-400">194 BPM</span>
+                        </div>
+                        <span class="text-xs text-slate-500">220 - Usia Anda</span>
+                    </div>
+
+                    <!-- 5 Kartu Zona -->
+                    <div id="hr-zones-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <!-- Injected via app.js -->
+                    </div>
+
+                    <!-- Chart Visual -->
+                    <div class="glass-panel rounded-2xl p-5 shadow-sm space-y-3">
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Grafik Spektrum Zona Latihan</h4>
+                        <div class="relative h-48">
+                            <canvas id="ind-hr-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 7: KEKUATAN 1 REP MAX (1RM) UNTUK GYM / ANGKAT BEBAN -->
+        <!-- ======================================================== -->
+        <section id="tab-onerm" class="tab-content-panel hidden space-y-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="text-center max-w-xl mx-auto">
+                    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kalkulator Kekuatan 1 Rep Max (1RM)</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Ketahui estimasi angkatan maksimal Anda tanpa harus mengambil risiko cedera saat tes angkat beban langsung (Formula Epley & Brzycki).
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <!-- Form 1RM -->
+                    <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                        <form id="onerm-form" class="space-y-4">
+                            <div>
+                                <label for="onerm-weight" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Beban yang Diangkat (kg)</label>
+                                <input type="number" step="0.5" id="onerm-weight" value="60" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label for="onerm-reps" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jumlah Repetisi yang Berhasil Diselesaikan</label>
+                                <input type="number" id="onerm-reps" value="8" min="1" max="15" required
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-500 outline-none">
+                                <span class="text-[10px] text-slate-400 block mt-1">Paling akurat pada rentang 1 s.d 10 repetisi</span>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-md transition">
+                                Hitung 1RM & Beban Latihan
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Hasil 1RM Standalone -->
+                    <div id="onerm-result-box" class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block">Estimasi 1 Rep Max Anda</span>
+                            <div class="text-4xl font-black text-purple-600 dark:text-purple-400" id="onerm-max-display">
+                                74.5 kg
+                            </div>
+                            <span class="text-xs text-slate-500">Kapasitas beban terberat untuk 1 repetisi penuh</span>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Panduan Beban Menurut Target Latihan:
+                            </h4>
+                            <table class="w-full text-xs text-left">
+                                <thead class="border-b border-slate-200 dark:border-slate-800 text-slate-400">
+                                    <tr>
+                                        <th class="py-2 px-2">% 1RM</th>
+                                        <th class="py-2 px-2">Beban</th>
+                                        <th class="py-2 px-2">Repetisi</th>
+                                        <th class="py-2 px-2">Tujuan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="onerm-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <!-- Injected via app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- TAB 8: RIWAYAT & GRAFIK TREN KEMAJUAN (TRACKER DATA)     -->
+        <!-- ======================================================== -->
+        <section id="tab-history" class="tab-content-panel hidden space-y-8">
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Riwayat & Tren Kebugaran Tubuh</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                            Pantau perubahan berat badan dan indeks BMI Anda seiring berjalannya waktu.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="export-csv-btn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
+                            <i class="fa-solid fa-file-excel text-emerald-500"></i>
+                            <span>Ekspor CSV</span>
+                        </button>
+                        <button id="clear-history-btn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Hapus Semua</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grafik Garis Tren Progres (Weight & BMI) -->
+                <div class="glass-panel rounded-2xl p-6 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-indigo-500"></i>
+                            <span>Grafik Tren Perkembangan Berat & BMI</span>
+                        </h3>
+                        <span class="text-xs text-slate-400">Data tersimpan di perangkat lokal</span>
+                    </div>
+                    <div class="relative h-64 sm:h-72">
+                        <canvas id="history-trend-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabel Riwayat Data -->
+                <div class="glass-panel rounded-2xl p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">Daftar Catatan Kebugaran</h3>
+                    
+                    <div id="history-empty-state" class="hidden text-center py-10 space-y-2">
+                        <i class="fa-regular fa-folder-open text-4xl text-slate-300 dark:text-slate-600"></i>
+                        <p class="text-sm text-slate-500">Belum ada riwayat tercatat. Lakukan kalkulasi pada tab "Penilaian Lengkap" lalu klik Simpan.</p>
+                    </div>
+
+                    <div id="history-table-container" class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                                <tr>
+                                    <th class="py-3 px-4 font-semibold">Tanggal</th>
+                                    <th class="py-3 px-4 font-semibold">Nama</th>
+                                    <th class="py-3 px-4 font-semibold">Berat</th>
+                                    <th class="py-3 px-4 font-semibold">BMI</th>
+                                    <th class="py-3 px-4 font-semibold">TDEE</th>
+                                    <th class="py-3 px-4 font-semibold">Lemak (%)</th>
+                                    <th class="py-3 px-4 font-semibold">Skor</th>
+                                    <th class="py-3 px-4 font-semibold">Sasaran</th>
+                                    <th class="py-3 px-4 text-right font-semibold">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <!-- Injected via history.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 py-6 text-center text-xs text-slate-500 no-print">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>
+                <b>FitCalc Pro</b> &copy; 2026. Aplikasi Kalkulator Kebugaran Tubuh Berbasis Web.
+            </p>
+            <p class="text-[11px] text-slate-400">
+                Formula Ilmiah: Mifflin-St Jeor &bull; U.S. Navy Body Fat &bull; Karvonen HR &bull; Standar Kemenkes RI
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/calculators.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
